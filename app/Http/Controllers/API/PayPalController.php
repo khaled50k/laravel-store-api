@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Events\NewOrderPaid;
 use Illuminate\Http\Request;
 use App\Http\Controllers\API\BaseController as BaseController;
 use PayPalCheckoutSdk\Core\PayPalHttpClient;
@@ -20,11 +21,11 @@ class PayPalController extends BaseController
     {
         $environment = env('PAYPAL_MODE') === 'live'
             ? new ProductionEnvironment(env('PAYPAL_LIVE_CLIENT_ID'), env('PAYPAL_LIVE_CLIENT_SECRET'))
-            : new SandboxEnvironment(env('PAYPAL_SANDBOX_CLIENT_ID'),env('PAYPAL_SANDBOX_CLIENT_SECRET'));
-    
+            : new SandboxEnvironment(env('PAYPAL_SANDBOX_CLIENT_ID'), env('PAYPAL_SANDBOX_CLIENT_SECRET'));
+
         $this->client = new PayPalHttpClient($environment);
-        }
-    
+    }
+
 
     /**
      * Create PayPal Payment
@@ -44,6 +45,8 @@ class PayPalController extends BaseController
                         "currency_code" => "USD",
                         "value" => $order->total,
                     ],
+                    "custom_id" => (string) $order->id,   // Attach custom ID securely
+                    "invoice_id" => (string) $order->order_number, // Optional
                 ],
             ],
             "application_context" => [
@@ -65,40 +68,73 @@ class PayPalController extends BaseController
         }
     }
 
+
+
     /**
      * Capture PayPal Payment
      */
     public function capturePayment(Request $request)
     {
-        $id = $request->query('poid');
-        $oid = $request->query('oid');
-
-        $captureRequest = new OrdersCaptureRequest($id);
-
+        $poid = $request->query('poid');  // PayPal Order ID
+        $captureRequest = new OrdersCaptureRequest($poid);
+    
         try {
             $response = $this->client->execute($captureRequest);
-
+    
+            // Log entire PayPal capture response
+    
             if ($response->result->status === 'COMPLETED') {
-                if ($oid) {
-                    Payments::create([
-                        'order_id' => $oid,
-                        'payment_gateway' => 'PayPal',
-                        'transaction_id' => $response->result->id,
-                        'amount' => $response->result->purchase_units[0]->payments->captures[0]->amount->value,
-                        'status' => 'completed',
-                    ]);
-                } else {
-                    return $this->sendError('PayPal API Error.', ['error' => 'Order ID is null.']);
+                // Extract Application Order ID securely
+                $customId = data_get($response->result, 'purchase_units.0.payments.captures.0.custom_id');
+    
+                if (!$customId) {
+                    return $this->sendError('Order ID not found in PayPal response.');
                 }
-
+    
+                // Find and update the order
+                $order = Order::find($customId);
+                if (!$order) {
+                    return $this->sendError('Order not found.');
+                }
+    
+                $order->status = 'paid';
+                $order->save();
+    
+                // Format the order payload
+                $formattedOrder = [
+                    'order_id'    => (string) $order->id, 
+                    'order_number'=> (string) $order->order_number, 
+                    'customer'    => $order->user->first_name . ' ' . $order->user->last_name,
+                    'email'       => $order->user->email,
+                    'total'       => number_format($order->total, 2, '.', ''),
+                    'status'      => ucfirst($order->status),
+                    'currency'    => strtoupper($order->currency),
+                    'message'     => 'The order has been paid successfully!',
+                ];
+    
+                // Record the payment
+                $payment = Payments::create([
+                    'order_id'        => $customId,
+                    'payment_gateway' => 'PayPal',
+                    'transaction_id'  => $response->result->id,
+                    'amount'          => $response->result->purchase_units[0]->payments->captures[0]->amount->value,
+                    'status'          => 'completed',
+                ]);
+    
+                // Trigger the event
+                broadcast(new NewOrderPaid($formattedOrder, $payment));
+    
                 return $this->sendResponse($response->result, 'Payment captured successfully.');
             }
-
+    
             return $this->sendError('Payment not completed.', $response->result);
         } catch (\Exception $e) {
             return $this->sendError('PayPal API Error.', ['error' => $e->getMessage()]);
         }
     }
+    
+
+
 
     /**
      * Cancel Payment

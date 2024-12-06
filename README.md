@@ -1,92 +1,79 @@
-# Laravel 11 Sanctum REST API Authentication Tutorial
+Laravel Store API
+================
 
-  Build an Laravel 11 REST API Authentication using Sanctum Step by Step example. you have to simply follow the below steps:
-  - Step 1: Install Laravel 11
-  - Step 2: Install Sanctum API
-  - Step 3: Sanctum Configuration
-  - Step 4: Add Product Table and Model
-  - Step 5: Create API Routes
-  - Step 6: Create Controller Files
-  - Run Laravel 11 App
+This is a simple API built using Laravel for managing a store's inventory and orders. It provides endpoints for CRUD operations on products, orders, customers, and more.
 
-![laravel-11-rest-api-sanctum-example](https://www.itsolutionstuff.com/upload/laravel-11-sanctum-api.png)
+### Installation
 
- Run `php artisan serve` for a dev server. Navigate to `http://localhost:8000/`. The application will automatically reload if you change any of the source files.
+1. Clone the repository: `git clone https://github.com/khaled50k/laravel-store-api.git`
+2. Install dependencies: `composer install`
+3. Set up the database: `php artisan migrate`
+4. Start the server: `php artisan serve`
 
- Read Article: https://www.itsolutionstuff.com/post/laravel-11-rest-api-authentication-using-sanctum-tutorialexample.html
+### Endpoints
 
+* **Products**
+	+ GET `/products`: List all products
+	+ GET `/products/{id}`: Show a product by ID
+	+ POST `/products`: Create a new product
+	+ PUT `/products/{id}`: Update a product
+	+ DELETE `/products/{id}`: Delete a product
+* **Product Colors**
+	+ GET `/product-colors`: List all product colors
+	+ GET `/product-colors/{id}`: Show a product color by ID
+	+ POST `/product-colors`: Create a new product color
+	+ PUT `/product-colors/{id}`: Update a product color
+	+ DELETE `/product-colors/{id}`: Delete a product color
+* **Product Images**
+	+ GET `/product-images`: List all product images
+	+ GET `/product-images/{id}`: Show a product image by ID
+	+ POST `/product-images`: Create a new product image
+	+ DELETE `/product-images/{id}`: Delete a product image
+* **Product Sizes**
+	+ GET `/product-sizes`: List all product sizes
+	+ GET `/product-sizes/{id}`: Show a product size by ID
+	+ POST `/product-sizes`: Create a new product size
+	+ DELETE `/product-sizes/{id}`: Delete a product size
+* **Categories**
+	+ GET `/categories`: List all categories
+	+ GET `/categories/{id}`: Show a category by ID
+	+ POST `/categories`: Create a new category
+	+ PUT `/categories/{id}`: Update a category
+	+ DELETE `/categories/{id}`: Delete a category
+* **Orders**
+	+ GET `/orders`: List all orders
+	+ GET `/orders/{id}`: Show an order by ID
+	+ POST `/orders`: Create a new order
+	+ PUT `/orders/{id}`: Update an order
+	+ DELETE `/orders/{id}`: Delete an order
+* **Order Items**
+	+ GET `/order-items`: List all order items
+	+ GET `/order-items/{id}`: Show an order item by ID
+	+ POST `/order-items`: Create a new order item
+	+ PUT `/order-items/{id}`: Update an order item
+	+ DELETE `/order-items/{id}`: Delete an order item
+* **Customers**
+	+ GET `/customers`: List all customers
+	+ GET `/customers/{id}`: Show a customer by ID
+	+ POST `/customers`: Create a new customer
+	+ PUT `/customers/{id}`: Update a customer
+	+ DELETE `/customers/{id}`: Delete a customer
+* **Payments**
+	+ GET `/payments`: List all payments
+	+ GET `/payments/{id}`: Show a payment by ID
+	+ POST `/payments`: Create a new payment
+	+ PUT `/payments/{id}`: Update a payment
+	+ DELETE `/payments/{id}`: Delete a payment
+* **PayPal**
+	+ POST `/paypal/create`: Create a new PayPal payment
+	+ POST `/paypal/capture`: Capture a PayPal payment
+	+ GET `/paypal/cancel`: Cancel a PayPal payment
+	+ GET `/paypal/success`: Success PayPal payment
 
-## ⭐️ List of Laravel 11 Tutorial Examples Step by Step: 
+### Contributing
 
+Contributions are welcome! Please open a pull request to add new features or fix issues.
 
-<table>
-<tr>
-    <td>🔗 <a href="https://www.itsolutionstuff.com/post/laravel-11-crud-application-example-tutorialexample.html">Laravel 11 CRUD Application Tutorial</a></td>
-    <td>🔗 <a href="https://www.itsolutionstuff.com/post/laravel-11-import-export-excel-and-csv-file-tutorialexample.html">Laravel 11 Import Export Excel and CSV File</a></td>
-</tr>
-<tr>
-    <td>🔗 <a href="https://www.itsolutionstuff.com/post/laravel-11-user-roles-and-permissions-tutorialexample.html">Laravel 11 User Roles and Permissions</a></td>
-    <td>🔗 <a href="https://www.itsolutionstuff.com/post/laravel-11-json-web-tokenjwt-api-authentication-tutorialexample.html">Laravel 11 JWT API Authentication</a></td>
-</tr>
-<tr>
-    <td>🔗 <a href="https://www.itsolutionstuff.com/post/laravel-11-rest-api-authentication-using-sanctum-tutorialexample.html">Laravel 11 Sanctum REST API Authentication</a></td>
-    <td>🔗 <a href="https://www.itsolutionstuff.com/post/laravel-11-rest-api-with-passport-authentication-tutorialexample.html">Laravel 11 Passport REST API Authentication</a></td>
-</tr>
-<tr>
-    <td>🔗 <a href="https://www.itsolutionstuff.com/post/laravel-11-generate-pdf-file-using-dompdf-exampleexample.html">Laravel 11 Generate PDF File using DomPDF</a></td>
-    <td>🔗 <a href="https://www.itsolutionstuff.com/post/laravel-11-yajra-datatables-example-tutorialexample.html">Laravel 11 Yajra Datatables Example Tutorial</a></td>
-</tr>
-<tr>
-    <td>🔗 <a href="https://www.itsolutionstuff.com/post/how-to-create-and-use-trait-in-laravel-11example.html">How to Create and User Trait in Laravel 11?</a></td>
-    <td>🔗 <a href="https://www.itsolutionstuff.com/post/how-to-create-custom-middleware-in-laravel-11example.html">Laravel 11 Create Custom Middleware</a></td>
-</tr>
-<tr>
-    <td>🔗 <a href="https://www.itsolutionstuff.com/post/how-to-publish-api-route-file-in-laravel-11example.html">How to Publish API Routes in Laravel 11?</a></td>
-    <td>🔗 <a href="https://www.itsolutionstuff.com/post/how-to-create-interface-in-laravel-11example.html">How to Create Interface in Laravel 11?</a></td>
-</tr>
-<tr>
-    <td>🔗 <a href="https://www.itsolutionstuff.com/post/how-to-create-custom-class-in-laravel-11example.html">How to Create Custom Class in Laravel 11?</a></td>
-    <td>🔗 <a href="https://www.itsolutionstuff.com/post/how-to-create-custom-class-in-laravel-11example.html">How to Create Custom Class in Laravel 11?</a></td>
-</tr>
-<tr>
-    <td>🔗 <a href="https://www.itsolutionstuff.com/post/laravel-11-pagination-with-relationship-exampleexample.html">Laravel 11 Pagination with Relationship Example</a></td>
-    <td>🔗 <a href="https://www.itsolutionstuff.com/post/how-to-upload-files-to-amazon-s3-in-laravel-11example.html">How to Upload Files to Amazon S3 in Laravel 11?</a></td>
-</tr>
-<tr>
-    <td>🔗 <a href="https://www.itsolutionstuff.com/post/laravel-11-scout-full-text-search-tutorialexample.html">Laravel 11 Scout Full Text Search</a></td>
-    <td>🔗 <a href="https://www.itsolutionstuff.com/post/laravel-11-resize-image-before-upload-exampleexample.html">Laravel 11 Resize Image Before Upload Example</a></td>
-</tr>
-<tr>
-    <td>🔗 <a href="https://www.itsolutionstuff.com/post/how-to-generate-qr-code-in-laravel-11example.html">How to Generate QR Code in Laravel 11?</a></td>
-    <td>🔗 <a href="https://www.itsolutionstuff.com/post/laravel-11-resize-image-before-upload-exampleexample.html">Laravel 11 One to Many Eloquent Relationship</a></td>
-</tr>
-<tr>
-    <td>🔗 <a href="https://www.itsolutionstuff.com/post/laravel-11-chart-using-highcharts-js-exampleexample.html">Laravel 11 Chart using Highcharts JS</a></td>
-    <td>🔗 <a href="https://www.itsolutionstuff.com/post/laravel-11-socialite-login-with-google-account-exampleexample.html">Laravel 11 Socialite Login with Google</a></td>
-</tr>
-<tr>
-    <td>🔗 <a href="https://www.itsolutionstuff.com/post/laravel-11-drag-and-drop-file-upload-with-dropzone-jsexample.html">Laravel 11 Dropzone Drag and Drop File Upload</a></td>
-    <td>🔗 <a href="https://www.itsolutionstuff.com/post/laravel-11-stripe-payment-gateway-integration-exampleexample.html">Laravel 11 Stripe Payment Gateway Integration</a></td>
-</tr>
-<tr>
-    <td>🔗 <a href="https://www.itsolutionstuff.com/post/how-to-create-event-calendar-in-laravel-11example.html">Laravel 11 Create Event Calendar</a></td>
-    <td>🔗 <a href="https://www.itsolutionstuff.com/post/laravel-11-crud-with-image-upload-tutorialexample.html">Laravel 11 CRUD with Image Upload</a></td>
-</tr>
-<tr>
-    <td>🔗 <a href="https://www.itsolutionstuff.com/post/setup-automatic-daily-database-backup-with-laravel-11example.html">Laravel 11 Automatic Daily Database Backup</a></td>
-    <td>🔗 <a href="https://www.itsolutionstuff.com/post/how-to-save-json-data-in-database-in-laravel-11example.html">Laravel 11 Save JSON Data in Database</a></td>
-</tr>
-<tr>
-    <td>🔗 <a href="https://www.itsolutionstuff.com/post/laravel-11-livewire-crud-using-jetstream-tailwind-cssexample.html">Laravel 11 Livewire CRUD using Jetstream</a></td>
-    <td>🔗 <a href="https://www.itsolutionstuff.com/post/how-to-create-zip-archive-file-in-laravel-11example.html">How to Create ZIP Archive File in Laravel 11?</a></td>
-</tr>
-<tr>
-    <td>🔗 <a href="https://www.itsolutionstuff.com/post/laravel-11-livewire-wizard-multi-step-form-tutorialexample.html">Laravel 11 Livewire Wizard Multi Step Form</a></td>
-    <td>🔗 <a href="https://www.itsolutionstuff.com/post/laravel-11-ckeditor-image-upload-exampleexample.html">Laravel 11 CKeditor Image Upload Example</a></td>
-</tr>
-</table>
+### License
 
-
-## 🚀 Published By
-
-Publish one article daily about Laravel on the [ItSolutionStuff.com](https://www.itsolutionstuff.com).
+This project is licensed under the MIT License.

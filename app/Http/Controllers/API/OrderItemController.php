@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\API\BaseController as BaseController;
+use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use Illuminate\Http\Request;
@@ -131,6 +132,15 @@ class OrderItemController extends BaseController
             'total' => $total,
         ]);
 
+        // Get all order items for the order and calculate the total
+        $orderItems = OrderItem::where('order_id', $request->order_id)->get();
+        $orderTotal = $orderItems->sum('total');
+
+        // Update the order with the new total
+        $order = Order::find($request->order_id);
+        $order->total = $orderTotal;
+        $order->save();
+
         return $this->sendResponse($orderItem, 'Order item added successfully.');
     }
 
@@ -201,6 +211,10 @@ class OrderItemController extends BaseController
 
         if (is_null($orderItem)) {
             return $this->sendError('Order item not found.');
+        }
+
+        if ($orderItem->order->user_id != auth()->user()->id) {
+            return $this->sendError('Unauthorized to delete this order item.');
         }
 
         $orderItem->delete();

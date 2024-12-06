@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pusher & Laravel Echo Test</title>
+
+  <!-- Include Pusher JS -->
+  <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+
+  <!-- Include Laravel Echo -->
+  <script src="https://cdn.jsdelivr.net/npm/laravel-echo/dist/echo.iife.min.js"></script>
+
+  <script>
+    // Enable Pusher logging - Do NOT use this in production
+    Pusher.logToConsole = true;
+
+    // Pusher setup
+    const pusher = new Pusher('e41fb2b49c009e8f7371', {
+      cluster: 'us3',
+    });
+
+    // Subscribe to Pusher channel
+    const channel = pusher.subscribe('my-channel');
+    channel.bind('my-event', function (data) {
+      alert(`Pusher Event Received: ${JSON.stringify(data)}`);
+    });
+
+    // Laravel Echo setup
+    const Echo = new window.Echo({
+      broadcaster: 'pusher',
+      key: 'e41fb2b49c009e8f7371',
+      cluster: 'us3',
+      forceTLS: true, // Use secure connections
+    });
+
+    // Listen for Laravel Echo events
+    Echo.channel('admin-notifications')
+      .listen('NewUserRegistered', (event) => {
+        console.log('New User Registered:', event);
+        alert(`New User Registered: ${event.name} (${event.email})`);
+      });
+  </script>
+</head>
+<body>
+  <h1>Pusher & Laravel Echo Test</h1>
+  <p>
+    Try publishing an event to channel <code>my-channel</code> with event name
+    <code>my-event</code>, or test Laravel Echo on channel <code>admin-notifications</code>
+    with event name <code>NewUserRegistered</code>.
+  </p>
+</body>
+</html>

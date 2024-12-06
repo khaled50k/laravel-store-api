@@ -30,59 +30,68 @@ Route::controller(RegisterController::class)->group(function () {
 
 // Authenticated Routes
 Route::middleware(['auth:sanctum', 'admin'])->group(function () {
-    // Product Routes
-    Route::prefix('products')->group(function () {
-        Route::get('/', [ProductController::class, 'index']);
-        Route::post('/', [ProductController::class, 'store']);
-        Route::get('/details', [ProductController::class, 'show']); // Uses ?id= for product details
-        Route::put('/', [ProductController::class, 'update']); // Uses ?id= for updates
-        Route::delete('/', [ProductController::class, 'destroy']); // Uses ?id= for deletion
-    });
-    Route::prefix('user')->group(function () {
+    // Admin Routes
+    Route::prefix('admin')->group(function () {
+        // Product Routes
+        Route::prefix('products')->group(function () {
+            Route::get('/', [ProductController::class, 'index']);
+            Route::post('/', [ProductController::class, 'store']);
+            Route::get('/details', [ProductController::class, 'show']); // Uses ?id= for product details
+            Route::put('/', [ProductController::class, 'update']); // Uses ?id= for updates
+            Route::delete('/', [ProductController::class, 'destroy']); // Uses ?id= for deletion
+        });
+        Route::prefix('user')->group(function () {
 
-        Route::delete('/', [UserController::class, 'disableUser']); // Get user data
-        Route::get('/', [UserController::class, 'getAllUsers']); // Get user data
+            Route::delete('/', [UserController::class, 'disableUser']); // Get user data
+            Route::get('/', [UserController::class, 'getAllUsers']); // Get user data
 
-    });
+        });
 
-    // Product Colors Routes
-    Route::prefix('product-colors')->group(function () {
-        Route::get('/', [ProductColorController::class, 'index']); // Uses ?product_id= for color list
-        Route::post('/', [ProductColorController::class, 'store']);
-        Route::get('/details', [ProductColorController::class, 'show']); // Uses ?id= for color details
-        Route::put('/', [ProductColorController::class, 'update']); // Uses ?id= for color updates
-        Route::delete('/', [ProductColorController::class, 'destroy']); // Uses ?id= for color deletion
-    });
+        Route::middleware(['auth:sanctum'])->prefix('orders')->group(function () {
+            Route::get('/', [OrderController::class, 'index']); // Show order details
+            Route::get('/summary', [OrderController::class, 'generateOrderSummary']); // Show order details
+            Route::put('/status', [OrderController::class, 'updateOrderStatus']); // Show order details
+        });
 
-    // Product Images Routes
-    Route::prefix('product-images')->group(function () {
-        Route::get('/', [ProductImageController::class, 'index']); // Uses ?product_id= for image list
-        Route::post('/', [ProductImageController::class, 'store']);
-        Route::delete('/', [ProductImageController::class, 'destroy']); // Uses ?id= for image deletion
-    });
+        // Product Colors Routes
+        Route::prefix('product-colors')->group(function () {
+            Route::get('/', [ProductColorController::class, 'index']); // Uses ?product_id= for color list
+            Route::post('/', [ProductColorController::class, 'store']);
+            Route::get('/details', [ProductColorController::class, 'show']); // Uses ?id= for color details
+            Route::put('/', [ProductColorController::class, 'update']); // Uses ?id= for color updates
+            Route::delete('/', [ProductColorController::class, 'destroy']); // Uses ?id= for color deletion
+        });
 
-    // Product Sizes Routes
-    Route::prefix('product-sizes')->group(function () {
-        Route::get('/', [ProductSizeController::class, 'index']); // Uses ?product_id= for size list
-        Route::post('/', [ProductSizeController::class, 'store']);
-        Route::delete('/', [ProductSizeController::class, 'destroy']); // Uses ?id= for size deletion
-    });
+        // Product Images Routes
+        Route::prefix('product-images')->group(function () {
+            Route::get('/', [ProductImageController::class, 'index']); // Uses ?product_id= for image list
+            Route::post('/', [ProductImageController::class, 'store']);
+            Route::delete('/', [ProductImageController::class, 'destroy']); // Uses ?id= for image deletion
+        });
 
-    // Category Routes
-    Route::prefix('categories')->group(function () {
-        Route::get('/', [CategoryController::class, 'index']);
-        Route::post('/', [CategoryController::class, 'store']);
-        Route::get('/details', [CategoryController::class, 'show']); // Uses ?id= for category details
-        Route::put('/', [CategoryController::class, 'update']); // Uses ?id= for updates
-        Route::delete('/', [CategoryController::class, 'destroy']); // Uses ?id= for deletion
-    });
+        // Product Sizes Routes
+        Route::prefix('product-sizes')->group(function () {
+            Route::get('/', [ProductSizeController::class, 'index']); // Uses ?product_id= for size list
+            Route::post('/', [ProductSizeController::class, 'store']);
+            Route::delete('/', [ProductSizeController::class, 'destroy']); // Uses ?id= for size deletion
+        });
 
-    // Image Upload Routes
-    Route::prefix('uploads')->group(function () {
-        Route::post('/products', [ImageUploadController::class, 'uploadProductImage']);
-        Route::post('/categories', [ImageUploadController::class, 'uploadCategoryImage']);
-        Route::delete('/categories', [ImageUploadController::class, 'removeCategoryImage']);
-        Route::post('/users/avatar', [ImageUploadController::class, 'uploadUserAvatar']);
+        // Category Routes
+        Route::prefix('categories')->group(function () {
+            Route::get('/', [CategoryController::class, 'index']);
+            Route::post('/', [CategoryController::class, 'store']);
+            Route::get('/details', [CategoryController::class, 'show']); // Uses ?id= for category details
+            Route::put('/', [CategoryController::class, 'update']); // Uses ?id= for updates
+            Route::delete('/', [CategoryController::class, 'destroy']); // Uses ?id= for deletion
+        });
+
+        // Image Upload Routes
+        Route::prefix('uploads')->group(function () {
+            Route::post('/products', [ImageUploadController::class, 'uploadProductImage']);
+            Route::post('/categories', [ImageUploadController::class, 'uploadCategoryImage']);
+            Route::delete('/categories', [ImageUploadController::class, 'removeCategoryImage']);
+            Route::post('/users/avatar', [ImageUploadController::class, 'uploadUserAvatar']);
+        });
     });
 });
 Route::prefix('/v1')->group(function () {
