@@ -144,7 +144,7 @@ class ImageUploadController extends BaseController
     private function uploadImage(Request $request, $directory)
     {
         $validator = Validator::make($request->all(), [
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // Max size: 2MB
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif', // Max size: 2MB per image
         ]);
 
         if ($validator->fails()) {
