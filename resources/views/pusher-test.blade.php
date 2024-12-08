@@ -17,7 +17,7 @@
         });
 
         // Subscribe to the test channel
-        const channel = pusher.subscribe('payments');
+        const channel = pusher.subscribe('orders');
 
         // Listen for the event
         channel.bind('NewOrderPaid', function(data) {
