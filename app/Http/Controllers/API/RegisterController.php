@@ -20,24 +20,22 @@ class RegisterController extends BaseController
      */
     public function register(Request $request)
 {
-    $validator = Validator::make($request->all(), [
+    $validatedData = $request->validate([
         'first_name' => 'required|string|max:255',
         'last_name' => 'required|string|max:255',
         'email' => 'required|email|unique:users,email',
         'phone' => 'nullable|string|max:15',
-        'password' => 'required|string|min:8',
+        'password' => 'required|string|min:8|confirmed',
+        'password_confirmation' => 'required_with:password|same:password|min:8',
     ]);
 
-    if ($validator->fails()) {
-        return $this->sendError('Validation Error.', $validator->errors());
-    }
-
-    $input = $request->only([
-        'first_name', 'last_name', 'email', 'phone', 'password'
+    $user = User::create([
+        'first_name' => $validatedData['first_name'],
+        'last_name' => $validatedData['last_name'],
+        'email' => $validatedData['email'],
+        'phone' => $validatedData['phone'],
+        'password' => bcrypt($validatedData['password']),
     ]);
-    $input['password'] = bcrypt($input['password']); // Hash the password
-
-    $user = User::create($input);
 
     // Broadcast event for real-time notification
     broadcast(new NewUserRegistered((object) $user));
@@ -56,25 +54,23 @@ class RegisterController extends BaseController
      */
     public function login(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
-            'password' => 'required|string',
+        $validatedData = $request->validate([
+            'email' => 'required|email|exists:users,email',
+            'password' => 'required|string|min:8',
         ]);
 
-        if ($validator->fails()) {
-            return $this->sendError('Validation Error.', $validator->errors());
+        if (!Auth::attempt(['email' => $validatedData['email'], 'password' => $validatedData['password']])) {
+            return $this->sendError('Unauthorised.', ['error' => 'Invalid credentials.']);
         }
 
-        if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
-            $user = Auth::user();
-            $success['token'] = $user->createToken('MyApp')->plainTextToken;
-            $success['first_name'] = $user->first_name;
-            $success['last_name'] = $user->last_name;
-            $success['role'] = $user->role;
+        $user = Auth::user();
+        $token = $user->createToken('MyApp')->plainTextToken;
 
-            return $this->sendResponse($success, 'User logged in successfully.');
-        }
-
-        return $this->sendError('Unauthorised.', ['error' => 'Unauthorised']);
+        return $this->sendResponse([
+            'token' => $token,
+            'first_name' => $user->first_name,
+            'last_name' => $user->last_name,
+            'role' => $user->role,
+        ], 'User logged in successfully.');
     }
 }
