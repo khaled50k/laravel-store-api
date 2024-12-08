@@ -78,7 +78,7 @@ class ProductImageController extends BaseController
             return $this->sendError($images['error'], $images['details']);
         }
         if ($images) {
-            return $this->sendResponse($images, 'Product images deleted successfully.');
+            return $this->sendResponse([], 'Product images deleted successfully.');
         }
         return $this->sendError('No images were deleted.');
     }

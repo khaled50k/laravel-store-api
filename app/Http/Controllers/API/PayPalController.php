@@ -51,7 +51,7 @@ class PayPalController extends BaseController
             ],
             "application_context" => [
                 "cancel_url" => route('paypal.cancel'),
-                "return_url" => route('paypal.success'),
+                "return_url" => env('FRONTEND_URL') . '/paypal/success',
             ],
         ];
 

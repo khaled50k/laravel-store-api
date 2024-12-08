@@ -1,16 +1,31 @@
 <?php
 
 namespace App\Http\Controllers\API;
-use Illuminate\Support\Str;
 
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
-use App\Http\Controllers\API\BaseController as BaseController;
+use App\Http\Controllers\Controller;
 use App\Models\ProductImage;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
-class ImageUploadController extends BaseController
+class ImageUploadController extends Controller
 {
+    /**
+     * Serve uploaded images.
+     */
+    public function serveImage(Request $request, $directory, $filename)
+    {
+        $path = "uploads/{$directory}/{$filename}";
+
+        // Check if the file exists in the storage
+        if (Storage::disk('public')->exists($path)) {
+            return response()->file(storage_path("app/public/{$path}"));
+        }
+
+        return response()->json(['error' => 'Image not found'], 404);
+    }
+
     /**
      * Upload an image for a product.
      */
@@ -36,24 +51,18 @@ class ImageUploadController extends BaseController
     }
 
     /**
-     * Remove an image for a product.
+     * Remove images.
      */
     public function removeProductImages(Request $request)
     {
         return $this->deleteImages($request, 'products');
     }
 
-    /**
-     * Remove an image for a category.
-     */
     public function removeCategoryImage(Request $request)
     {
         return $this->removeImage($request, 'categories');
     }
 
-    /**
-     * Remove an image for a user avatar.
-     */
     public function removeUserAvatar(Request $request)
     {
         return $this->removeImage($request, 'avatars');
@@ -62,32 +71,27 @@ class ImageUploadController extends BaseController
     private function uploadImages(Request $request, $directory)
     {
         $validator = Validator::make($request->all(), [
-            'images.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // Max size: 2MB per image
-            'color_id' => 'required|exists:product_colors,id', // Ensure the color ID exists
-            'product_id' => 'required|exists:products,id', // Ensure the product ID exists
+            'images.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'color_id' => 'required|exists:product_colors,id',
+            'product_id' => 'required|exists:products,id',
         ]);
 
         if ($validator->fails()) {
             return ['error' => 'Validation Error.', 'details' => $validator->errors()];
         }
+
         $uploadedImages = [];
 
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
-                // Generate a unique file name: product_id-color_id-timestamp.extension
-                $newFileName = $request->product_id . '-' . $request->color_id . '-' . time() . '-' . Str::random(8) . '.' . $image->getClientOriginalExtension();
-
-                // Save the file to the directory
+                $newFileName = 'ibdaatec-' . $request->product_id . '-' . $request->color_id . '-' . time() . '-' . Str::random(8) . '.' . $image->getClientOriginalExtension();
                 $path = $image->storeAs("uploads/{$directory}", $newFileName, 'public');
-
-                // Save the image details to the database (optional)
                 ProductImage::create([
                     'product_id' => $request->product_id,
                     'product_color_id' => $request->color_id,
-                    'image_path' => $path,
+                    'image_path' => '/images/' . $directory . '/' . $newFileName,
                 ]);
 
-                // Add the uploaded image's public URL to the response array
                 $uploadedImages[] = Storage::url($path);
             }
             return $uploadedImages;
@@ -99,52 +103,80 @@ class ImageUploadController extends BaseController
     private function deleteImages(Request $request, $directory)
     {
         $validator = Validator::make($request->all(), [
-            'image_ids' => 'required|array|min:1', // Ensure image_ids is an array with at least one element
-            'image_ids.*' => 'distinct|exists:product_images,id', // Validate that each ID is distinct and exists in the product_images table
+            'image_ids' => 'required|array|min:1',
+            'image_ids.*' => 'distinct|exists:product_images,id',
         ]);
 
         if ($validator->fails()) {
-            return ['error' => 'Validation Error.', 'details' => $validator->errors()];
+            return [
+                'error' => 'Validation Error.',
+                'details' => $validator->errors(),
+            ];
         }
 
         $deletedImages = [];
+        $failedDeletions = [];
 
         foreach ($request->image_ids as $imageId) {
             $image = ProductImage::find($imageId);
 
             if ($image) {
-                $fullPath = "public/{$image->image_path}";
+                // Correct file path by removing "/images/"
+                $path = str_replace('/images/', '', $image->image_path);
+                $storagePath = "uploads/{$path}";
 
-                // Delete the file from storage
-                if (Storage::exists($fullPath)) {
-                    Storage::delete($fullPath);
+                // Check if the file exists in storage
+                if (Storage::disk('public')->exists($storagePath)) {
+                    // Delete the file from storage
+                    if (Storage::disk('public')->delete($storagePath)) {
+                        // Delete the database record
+                        $image->delete();
+
+                        $deletedImages[] = [
+                            'id' => $imageId,
+                            'file_path' => url("storage/{$storagePath}"),
+                        ];
+                    } else {
+                        $failedDeletions[] = [
+                            'error' => 'Failed to delete image from storage.',
+                        ];
+                    }
+                } else {
+                    $failedDeletions[] = [
+                        'error' => 'Image not found in storage.',
+                    ];
                 }
-
-                // Remove the record from the database
-                $image->delete();
-
-                // Add deleted image information to the response
-                $deletedImages[] = [
+            } else {
+                $failedDeletions[] = [
                     'id' => $imageId,
-                    'file_path' => Storage::url($image->image_path),
+                    'error' => 'Image not found in database.',
                 ];
             }
         }
 
-        if (empty($deletedImages)) {
-            return ['error' => 'No images were deleted.'];
+        // Final response format
+        if (!empty($deletedImages)) {
+            if (!empty($failedDeletions)) {
+                return [
+                    'deleted' => $deletedImages,
+                    'failed' => $failedDeletions,
+                ];
+            } else {
+                return $deletedImages;
+            }
+        } else {
+            return [
+                'error' => 'No images were deleted.',
+                'details' => $failedDeletions,
+            ];
         }
-
-        return $deletedImages;
     }
 
-    /**
-     * Generic image upload handler.
-     */
+
     private function uploadImage(Request $request, $directory)
     {
         $validator = Validator::make($request->all(), [
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif', // Max size: 2MB per image
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif',
         ]);
 
         if ($validator->fails()) {
@@ -153,34 +185,32 @@ class ImageUploadController extends BaseController
 
         if ($request->hasFile('image')) {
             $image = $request->file('image');
-            $path = $image->store("uploads/{$directory}", 'public'); // Save to storage/public/uploads/{directory}
-
+            $newFileName = 'ibdaatec-' . Str::random(5) . '-' . Str::random(5) . '.' . $image->getClientOriginalExtension();
+            $path = $image->storeAs("uploads/{$directory}", $newFileName, 'public');
             return [
-                'file_path' => Storage::url($path), // Public URL for the uploaded file
+                'file_path' => '/images/' . $directory . '/' . $newFileName,
             ];
         }
 
         return ['error' => 'No image file found.'];
     }
 
-    /**
-     * Generic image remove handler.
-     */
     private function removeImage(Request $request, $directory)
     {
         $validator = Validator::make($request->all(), [
-            'file_path' => 'required|string', // The file path of the image to be removed
+            'file_path' => 'required|string',
         ]);
 
         if ($validator->fails()) {
             return ['error' => 'Validation Error.', 'details' => $validator->errors()];
         }
 
-        $filePath = $request->file_path; // Get the file path from the request
-        $filePath = str_replace('/storage/', '', $filePath); // Remove the '/storage/' prefix
-        $fullPath = "public/{$filePath}"; // Construct the full path for the storage system
-        if (Storage::exists($fullPath)) {
-            Storage::delete($fullPath); // Delete the file from storage
+  
+        $path = str_replace('/images/', '', $request->file_path);
+        $storagePath = "uploads/{$path}";
+
+        if (Storage::disk('public')->exists($storagePath)) {
+            Storage::disk('public')->delete($storagePath);
             return [];
         }
 

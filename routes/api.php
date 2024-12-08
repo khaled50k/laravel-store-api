@@ -150,3 +150,7 @@ Route::prefix('password')->group(function () {
     Route::post('/reset-link', [PasswordResetController::class, 'sendResetLink']);
     Route::post('/reset', [PasswordResetController::class, 'resetPassword']);
 });
+Route::prefix('images')->group(function () {
+    Route::get('/{directory}/{filename}', [ImageUploadController::class, 'serveImage'])
+        ->where(['directory' => '[a-zA-Z0-9_-]+', 'filename' => '.+']);
+});

@@ -80,8 +80,17 @@ class CategoryController extends BaseController
     /**
      * Update an existing category.
      */
-    public function update(Request $request, $id)
+    public function update(Request $request)
     {
+        $id = $request->query('id');
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|integer|exists:categories,id',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors());
+        }
+
         $category = Category::find($id);
 
         if (is_null($category)) {
@@ -105,8 +114,16 @@ class CategoryController extends BaseController
     /**
      * Delete a category.
      */
-    public function destroy($id)
+    public function destroy(Request $request)
     {
+        $id = $request->query('id');
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|integer|exists:categories,id',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors());
+        }
         $category = Category::find($id);
 
         if (is_null($category)) {
