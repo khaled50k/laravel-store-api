@@ -24,9 +24,11 @@ class AppServiceProvider extends ServiceProvider
 
       
 
-        // Register global middleware
+        // Globally register the 'admin' middleware alias for \App\Http\Middleware\AdminMiddleware
         Route::aliasMiddleware('admin', \App\Http\Middleware\AdminMiddleware::class);
-            // Your routes
-       
+
+        // Register external subscription middleware
+        Route::aliasMiddleware('check.external.subscription', \App\Http\Middleware\CheckExternalSubscription::class);
+  
     }
 }

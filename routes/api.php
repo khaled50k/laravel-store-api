@@ -18,10 +18,13 @@ use App\Http\Controllers\API\{
     UserController
 };
 
-// Test Route
-Route::get('/test', function () {
-    return response()->json(['message' => 'API is working!']);
+Route::middleware(['auth:sanctum', 'check.external.subscription'])->group(function () {
+    // Test Route
+    Route::get('/test', function () {
+        return response()->json(['message' => 'API is working!']);
+    });
 });
+
 
 // Authentication Routes
 Route::controller(RegisterController::class)->group(function () {
