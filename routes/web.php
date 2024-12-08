@@ -15,9 +15,3 @@ Route::get('reset-password/{token}', function ($token) {
     return view('auth.reset-password', ['token' => $token]);
 })->name('password.reset');
 
-// Trigger a test notification
-// Route to trigger event
-Route::get('/test', function () {
-    broadcast(new TestEvent("Pusher Test Message!"));
-    return "Test event broadcasted!";
-});
