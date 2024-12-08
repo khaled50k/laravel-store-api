@@ -89,7 +89,7 @@ class ImageUploadController extends Controller
                 ProductImage::create([
                     'product_id' => $request->product_id,
                     'product_color_id' => $request->color_id,
-                    'image_path' => '/images/' . $directory . '/' . $newFileName,
+                    'image_path' =>  $directory . '/' . $newFileName,
                 ]);
 
                 $uploadedImages[] = Storage::url($path);
@@ -188,7 +188,7 @@ class ImageUploadController extends Controller
             $newFileName = 'ibdaatec-' . Str::random(5) . '-' . Str::random(5) . '.' . $image->getClientOriginalExtension();
             $path = $image->storeAs("uploads/{$directory}", $newFileName, 'public');
             return [
-                'file_path' => '/images/' . $directory . '/' . $newFileName,
+                'file_path' =>$directory . '/' . $newFileName,
             ];
         }
 
