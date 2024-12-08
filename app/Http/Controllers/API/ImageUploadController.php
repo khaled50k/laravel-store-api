@@ -89,7 +89,7 @@ class ImageUploadController extends Controller
                 ProductImage::create([
                     'product_id' => $request->product_id,
                     'product_color_id' => $request->color_id,
-                    'image_path' => '/'. $directory . '/' . $newFileName,
+                    'image_path' => '/' . $directory . '/' . $newFileName,
                 ]);
 
                 $uploadedImages[] = Storage::url($path);
@@ -122,8 +122,8 @@ class ImageUploadController extends Controller
 
             if ($image) {
                 // Correct file path by removing "/images/"
-                $path = str_replace('/images/', '', $image->image_path);
-                $storagePath = "uploads/{$path}";
+                $path = $image->image_path;
+                $storagePath = "uploads{$path}";
 
                 // Check if the file exists in storage
                 if (Storage::disk('public')->exists($storagePath)) {
@@ -188,7 +188,7 @@ class ImageUploadController extends Controller
             $newFileName = 'ibdaatec-' . Str::random(5) . '-' . Str::random(5) . '.' . $image->getClientOriginalExtension();
             $path = $image->storeAs("uploads/{$directory}", $newFileName, 'public');
             return [
-                'file_path' =>'/'.$directory . '/' . $newFileName,
+                'file_path' => '/' . $directory . '/' . $newFileName,
             ];
         }
 
@@ -205,9 +205,9 @@ class ImageUploadController extends Controller
             return ['error' => 'Validation Error.', 'details' => $validator->errors()];
         }
 
-  
-        $path = str_replace('/images/', '', $request->file_path);
-        $storagePath = "uploads/{$path}";
+
+        $path = $request->file_path;
+        $storagePath = "uploads{$path}";
 
         if (Storage::disk('public')->exists($storagePath)) {
             Storage::disk('public')->delete($storagePath);

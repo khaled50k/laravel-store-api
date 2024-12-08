@@ -100,8 +100,7 @@ class UserController extends BaseController
             return $this->sendError('No avatar found to delete.', [], 404);
         }
 
-        $storagePath = str_replace('/images/', 'uploads/', $user->avatar);
-
+        $storagePath = 'uploads'. $user->avatar;
         if (Storage::disk('public')->exists($storagePath)) {
             try {
                 Storage::disk('public')->delete($storagePath);
